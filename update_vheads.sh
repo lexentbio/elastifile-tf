@@ -27,7 +27,7 @@ SESSION_FILE=session.txt
 PASSWORD=`cat password.txt | cut -d " " -f 1`
 LOG="update_vheads.log"
 
-while getopts "h?:n:a:l:e:p:r:" opt; do
+while getopts "h?:n:a:l:p:r:" opt; do
     case "$opt" in
     h|\?)
         usage
@@ -38,8 +38,6 @@ while getopts "h?:n:a:l:e:p:r:" opt; do
     a)  EMS_ADDRESS=${OPTARG}
         ;;
     l)  LB_TYPE=${OPTARG}
-        ;;
-    e)  SERVICE_EMAIL=${OPTARG}
         ;;
     p)  PROJECT=${OPTARG}
         ;;
@@ -65,19 +63,6 @@ function update_vheads {
   if [[ ${NUM_OF_VMS} > ${PRE_NUM_OF_VMS} ]]; then
     let NUM=${NUM_OF_VMS}-${PRE_NUM_OF_VMS}
     ./add_vheads.sh -n $NUM -a $EMS_ADDRESS
-     if [[ $LB_TYPE == "google" ]]; then
-        POST_IPS=$(curl -k -b ./session.txt -H "Content-Type: application/json" https://${EMS_ADDRESS}/api/enodes/ 2> /dev/null | jsonValue external_ip | sed s'/[,]$//')
-        ADDED_IPS=""
-        for IP in ${POST_IPS//,/ }; do
-          ip_exists=`echo $PRE_IPS | grep $IP`
-          if [[ ${ip_exists} == "" ]]; then
-            ADDED_IPS=$ADDED_IPS","$IP
-          fi
-        done
-        ADDED_IPS=$(echo $ADDED_IPS | sed s'/[,]//')
-        echo "ADDED_IPS: ${ADDED_IPS}" | tee ${LOG}    
-        ./update_google_ilb.sh -a $ADDED_IPS -e $SERVICE_EMAIL -p $PROJECT -r $CLUSTER_NAME
-      fi
   else
     let NUM=${PRE_NUM_OF_VMS}-${NUM_OF_VMS}
     ./remove_vheads.sh -n $NUM -a $EMS_ADDRESS
