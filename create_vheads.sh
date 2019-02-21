@@ -34,7 +34,6 @@ Usage:
   -i clear tier
   -k async dr
   -j lb vip
-  -b data container
 E_O_F
   exit 1
 }
@@ -52,7 +51,7 @@ LOG="create_vheads.log"
 #LOG=/dev/null
 #DISK_SIZE=
 
-while getopts "h?:c:l:t:n:d:v:p:s:a:e:f:g:i:k:j:b:r:" opt; do
+while getopts "h?:c:l:t:n:d:v:p:s:a:e:f:g:i:k:j:r:" opt; do
     case "$opt" in
     h|\?)
         usage
@@ -91,8 +90,6 @@ while getopts "h?:c:l:t:n:d:v:p:s:a:e:f:g:i:k:j:b:r:" opt; do
         ;;
     j)  LB_VIP=${OPTARG}
 	      ;;
-    b)  DATA_CONTAINER=${OPTARG}
-        ;;
     r)  EMS_NAME=${OPTARG}
         ;;
     esac
@@ -135,7 +132,6 @@ echo "EMAIL_ADDRESS: $EMAIL_ADDRESS" | tee -a ${LOG}
 echo "ILM: $ILM" | tee -a ${LOG}
 echo "ASYNC_DR: $ASYNC_DR" | tee -a ${LOG}
 echo "LB_VIP: $LB_VIP" | tee -a ${LOG}
-echo "DATA_CONTAINER: $DATA_CONTAINER" | tee -a ${LOG}
 
 #set -x
 
@@ -282,14 +278,6 @@ function job_status {
   done
 }
 
-# Create data containers
-function create_data_container {
-  if [[ $NUM_OF_VMS != 0 ]]; then
-    echo -e "Create data container & 1000GB NFS export /$DATA_CONTAINER/root\n" | tee -a ${LOG}
-    curl -k -b ${SESSION_FILE} -H "Content-Type: application/json" -X POST -d '{"name":"'$DATA_CONTAINER'","dedup":0,"compression":1,"soft_quota":{"bytes":1073741824000},"hard_quota":{"bytes":1073741824000},"policy_id":1,"dir_uid":0,"dir_gid":0,"dir_permissions":"755","data_type":"general_purpose","namespace_scope":"global","exports_attributes":[{"name":"root","path":"/","user_mapping":"remap_all","uid":0,"gid":0,"access_permission":"read_write","client_rules_attributes":[],"namespace_scope":"global","data_type":"general_purpose"}]}' https://$EMS_ADDRESS/api/data_containers >> ${LOG} 2>&1
-  fi
-}
-
 # Provision  and deploy
 function add_capacity {
   if [[ $NUM_OF_VMS == 0 ]]; then
@@ -332,6 +320,5 @@ first_run
 setup_ems
 add_capacity
 enable_clear_tier
-create_data_container
 change_password
 enable_async_dr

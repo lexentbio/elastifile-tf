@@ -17,7 +17,7 @@ data "external" "storage_nodes" {
   depends_on = ["null_resource.cluster"]
 }
 
-resource "google_compute_instance_group" "webservers" {
+resource "google_compute_instance_group" "storage_nodes" {
   count = "${var.LB_TYPE == "google" ? length(local.AVAILABILITY_ZONES) : 0}"
 
   name = "${var.CLUSTER_NAME}-${local.AVAILABILITY_ZONES[count.index]}"
@@ -61,6 +61,10 @@ resource "google_compute_region_backend_service" "elastifile_int_lb" {
   name          = "${var.CLUSTER_NAME}-int-lb"
   health_checks = ["${google_compute_health_check.elastifile_tcp_health_check.self_link}"]
   protocol      = "TCP"
+
+  lifecycle {
+    ignore_changes = ["backend"]
+  }
 }
 
 resource "google_compute_forwarding_rule" "elastifile_int_lb" {

@@ -114,6 +114,30 @@ variable "OPERATION_TYPE" {
   default = "none"
 }
 
-provider "google" {
-  // credentials = "${file("${local.CREDENTIALS}}"  // project     = "${var.PROJECT}"  // region      = "${var.REGION}"
+provider "google" {}
+
+provider "restapi" {
+  uri                  = "https://${local.EMS_ADDRESS}/api/"
+  insecure             = true
+  use_cookies          = true
+  write_returns_object = true
+  xssi_prefix          = ")]}',"
+
+  session_auth {
+    path = "/sessions"
+    data = "${jsonencode(local.user_json)}"
+  }
+}
+
+variable "SESSION_FILE" {
+  default = "session.txt"
+}
+
+locals {
+  user_json = {
+    user = {
+      login    = "admin"
+      password = "changeme"
+    }
+  }
 }
