@@ -3,5 +3,5 @@ output "ems_address" {
 }
 
 output "cluster_address" {
-    value = "${var.LB_TYPE == "google" ? google_compute_forwarding_rule.elastifile_int_lb.0.ip_address : ""}"
+    value = "${element(concat(google_compute_forwarding_rule.elastifile_int_lb.*.ip_address, list("")), 0)}"
 }

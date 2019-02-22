@@ -53,6 +53,10 @@ SCRIPT
     email  = "${local.SERVICE_EMAIL}"
     scopes = ["cloud-platform"]
   }
+
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }
 
 resource "google_compute_instance" "Elastifile-EMS-Private" {
@@ -105,6 +109,10 @@ SCRIPT
   service_account {
     email  = "${local.SERVICE_EMAIL}"
     scopes = ["cloud-platform"]
+  }
+
+  lifecycle {
+    ignore_changes = ["tags"]
   }
 }
 
