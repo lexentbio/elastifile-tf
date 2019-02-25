@@ -57,6 +57,11 @@ SCRIPT
   lifecycle {
     ignore_changes = ["tags"]
   }
+
+  provisioner "local-exec" {
+    command     = "${path.module}/setup_ems.sh -c ${var.TEMPLATE_TYPE} -l ${var.LB_TYPE} -t ${var.DISK_TYPE} -d ${var.DISK_CONFIG} -v ${var.VM_CONFIG} -p ${local.EMS_ADDRESS} -r ${var.CLUSTER_NAME} -s ${var.DEPLOYMENT_TYPE} -a ${var.NODES_ZONES} -e ${var.COMPANY_NAME} -f ${var.CONTACT_PERSON_NAME} -g ${var.EMAIL_ADDRESS} -i ${var.ILM} -k ${var.ASYNC_DR} -j ${var.LB_VIP}"
+    interpreter = ["/bin/bash", "-c"]
+  }
 }
 
 resource "google_compute_instance" "Elastifile-EMS-Private" {
@@ -113,6 +118,11 @@ SCRIPT
 
   lifecycle {
     ignore_changes = ["tags"]
+  }
+
+  provisioner "local-exec" {
+    command     = "${path.module}/setup_ems.sh -c ${var.TEMPLATE_TYPE} -l ${var.LB_TYPE} -t ${var.DISK_TYPE} -d ${var.DISK_CONFIG} -v ${var.VM_CONFIG} -p ${local.EMS_ADDRESS} -r ${var.CLUSTER_NAME} -s ${var.DEPLOYMENT_TYPE} -a ${var.NODES_ZONES} -e ${var.COMPANY_NAME} -f ${var.CONTACT_PERSON_NAME} -g ${var.EMAIL_ADDRESS} -i ${var.ILM} -k ${var.ASYNC_DR} -j ${var.LB_VIP}"
+    interpreter = ["/bin/bash", "-c"]
   }
 }
 
