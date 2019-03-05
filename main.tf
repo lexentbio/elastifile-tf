@@ -122,22 +122,18 @@ provider "restapi" {
   use_cookies          = true
   write_returns_object = true
   xssi_prefix          = ")]}',"
-
-  session_auth {
-    path = "/sessions"
-    data = "${jsonencode(local.user_json)}"
+  headers = {
+    Cookie = "${data.external.session.result["value"]}"
   }
 }
 
-variable "SESSION_FILE" {
-  default = "session.txt"
+data "external" "session" {
+  program = [
+    "${path.module}/create_session.sh",
+    "-a",
+    "https://${local.EMS_ADDRESS}/api/",
+    "-p",
+    "changeme",
+  ]
 }
 
-locals {
-  user_json = {
-    user = {
-      login    = "admin"
-      password = "changeme"
-    }
-  }
-}

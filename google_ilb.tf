@@ -14,7 +14,6 @@ data "external" "storage_nodes" {
     "${var.NODES_ZONES}",
   ]
 
-  depends_on = ["null_resource.cluster"]
 }
 
 resource "google_compute_instance_group" "storage_nodes" {

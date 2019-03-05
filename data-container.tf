@@ -45,3 +45,4 @@ locals {
     data_type               = "general_purpose"
   }
 }
+
