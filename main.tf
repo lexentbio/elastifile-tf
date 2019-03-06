@@ -22,15 +22,20 @@ variable "DISK_CONFIG" {
   default = "5_2000"
 }
 
-variable "CLUSTER_NAME" {}
+variable "CLUSTER_NAME" {
+}
 
-variable "COMPANY_NAME" {}
+variable "COMPANY_NAME" {
+}
 
-variable "CONTACT_PERSON_NAME" {}
+variable "CONTACT_PERSON_NAME" {
+}
 
-variable "EMAIL_ADDRESS" {}
+variable "EMAIL_ADDRESS" {
+}
 
-variable "IMAGE" {}
+variable "IMAGE" {
+}
 
 variable "SETUP_COMPLETE" {
   default = "false"
@@ -60,7 +65,8 @@ variable "SUBNETWORK" {
   default = "default"
 }
 
-variable "PROJECT" {}
+variable "PROJECT" {
+}
 
 variable "CREDENTIALS" {
   default = ""
@@ -70,12 +76,13 @@ variable "SERVICE_EMAIL" {
   default = ""
 }
 
-data "google_compute_default_service_account" "default" {}
+data "google_compute_default_service_account" "default" {
+}
 
 locals {
   # Conditionals in terraform are eagerly evaluated. So we set default to dummy value we can check against
-  CREDENTIALS   = "${ var.CREDENTIALS == "" ? "${path.module}/blank-credentials" : var.CREDENTIALS }"
-  SERVICE_EMAIL = "${ var.SERVICE_EMAIL == "" ? data.google_compute_default_service_account.default.email : var.SERVICE_EMAIL}"
+  CREDENTIALS   = var.CREDENTIALS == "" ? "${path.module}/blank-credentials" : var.CREDENTIALS
+  SERVICE_EMAIL = var.SERVICE_EMAIL == "" ? data.google_compute_default_service_account.default.email : var.SERVICE_EMAIL
 }
 
 variable "USE_PUBLIC_IP" {
@@ -103,7 +110,7 @@ variable "NODES_ZONES" {
 }
 
 locals {
-  AVAILABILITY_ZONES = "${split(",", var.NODES_ZONES)}"
+  AVAILABILITY_ZONES = split(",", var.NODES_ZONES)
 }
 
 variable "DEPLOYMENT_TYPE" {
@@ -114,7 +121,8 @@ variable "OPERATION_TYPE" {
   default = "none"
 }
 
-provider "google" {}
+provider "google" {
+}
 
 provider "restapi" {
   uri                  = "https://${local.EMS_ADDRESS}/api/"
@@ -123,8 +131,9 @@ provider "restapi" {
   write_returns_object = true
   xssi_prefix          = ")]}',"
   headers = {
-    Cookie = "${data.external.session.result["value"]}"
+    Cookie = data.external.session.result["value"]
   }
+
 }
 
 data "external" "session" {
@@ -137,4 +146,6 @@ data "external" "session" {
   ]
 }
 
-variable depends_on { default = [], type = "list"}
+variable "https_firewall_tag" {
+  default = "https-server"
+}

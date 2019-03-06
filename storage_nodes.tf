@@ -1,6 +1,6 @@
 resource "null_resource" "nodes" {
-  triggers {
-    num_of_vms = "${var.NUM_OF_VMS}"
+  triggers = {
+    num_of_vms = var.NUM_OF_VMS
   }
 
   provisioner "local-exec" {
@@ -11,7 +11,7 @@ resource "null_resource" "nodes" {
   provisioner "local-exec" {
     command     = "${path.module}/update_storage_nodes.sh -n 1 -a ${local.EMS_ADDRESS}"
     interpreter = ["/bin/bash", "-c"]
-    when        = "destroy"
+    when        = destroy
   }
 }
 
@@ -20,15 +20,15 @@ data "external" "storage_nodes" {
   program = [
     "${path.module}/get_storage_nodes.sh",
     "-a",
-    "${local.CREDENTIALS}",
+    local.CREDENTIALS,
     "-p",
-    "${var.PROJECT}",
+    var.PROJECT,
     "-r",
-    "${var.CLUSTER_NAME}",
+    var.CLUSTER_NAME,
     "-z",
-    "${var.NODES_ZONES}",
+    var.NODES_ZONES,
   ]
 
-  depends_on = ["null_resource.nodes"]
+  depends_on = [null_resource.nodes]
 }
 
