@@ -85,7 +85,6 @@ while getopts "h?:c:l:t:d:v:p:s:a:e:f:g:i:k:j:r:" opt; do
 done
 
 #capture computed variables
-EMS_HOSTNAME="${EMS_NAME}.local"
 
 # load balancer mode
 if [[ $LB == "elastifile" ]]; then
@@ -107,7 +106,6 @@ fi
 
 echo "EMS_ADDRESS: $EMS_ADDRESS" | tee ${LOG}
 echo "EMS_NAME: $EMS_NAME" | tee -a ${LOG}
-echo "EMS_HOSTNAME: $EMS_HOSTNAME" | tee -a ${LOG}
 echo "DISKTYPE: $DISKTYPE" | tee -a ${LOG}
 echo "LB: $LB" | tee -a ${LOG}
 echo "USE_LB: $USE_LB" | tee -a ${LOG}
@@ -197,7 +195,7 @@ function setup_ems {
   curl -k -s -b ${SESSION_FILE} --request GET --url "https://$EMS_ADDRESS/api/cloud_providers/1/validate" >> ${LOG} 2>&1
 
   echo -e "Configure systems...\n" | tee -a ${LOG}
-  curl -k -b ${SESSION_FILE} -H "Content-Type: application/json" -X PUT -d '{"name":"'$EMS_NAME'","replication_level":'$REPLICATION',"show_wizard":false,"name_server":"'$EMS_HOSTNAME'","eula":true,"registration_info":{"company_name":"'$COMPANY_NAME'","contact_person_name":"'$CONTACT_PERSON_NAME'","email_address":"'$EMAIL_ADDRESS'","receive_marketing_updates":false}}' https://$EMS_ADDRESS/api/systems/1 >> ${LOG} 2>&1
+  curl -k -b ${SESSION_FILE} -H "Content-Type: application/json" -X PUT -d '{"name":"'$EMS_NAME'","replication_level":'$REPLICATION',"show_wizard":false,"name_server":"'$EMS_NAME'.local","eula":true,"registration_info":{"company_name":"'$COMPANY_NAME'","contact_person_name":"'$CONTACT_PERSON_NAME'","email_address":"'$EMAIL_ADDRESS'","receive_marketing_updates":false}}' https://$EMS_ADDRESS/api/systems/1 >> ${LOG} 2>&1
 
   if [[ ${CONFIGTYPE} == "custom" ]]; then
     echo -e "Set storage type custom $DISKTYPE $DISK_CONFIG $VM_CONFIG \n" | tee -a ${LOG}

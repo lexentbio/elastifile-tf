@@ -59,7 +59,7 @@ SCRIPT
   }
 
   provisioner "local-exec" {
-    command     = "${path.module}/setup_ems.sh -c ${var.TEMPLATE_TYPE} -l ${var.LB_TYPE} -t ${var.DISK_TYPE} -d ${var.DISK_CONFIG} -v ${var.VM_CONFIG} -p ${self.network_interface.0.access_config.0.assigned_nat_ip} -r ${var.CLUSTER_NAME} -s ${var.DEPLOYMENT_TYPE} -a ${var.NODES_ZONES} -e ${var.COMPANY_NAME} -f ${var.CONTACT_PERSON_NAME} -g ${var.EMAIL_ADDRESS} -i ${var.ILM} -k ${var.ASYNC_DR} -j ${var.LB_VIP}"
+    command     = "${path.module}/setup_ems.sh -c ${var.TEMPLATE_TYPE} -l ${var.LB_TYPE} -t ${var.DISK_TYPE} -d ${var.DISK_CONFIG} -v ${var.VM_CONFIG} -p ${self.network_interface.0.access_config.0.nat_ip} -r ${var.CLUSTER_NAME} -s ${var.DEPLOYMENT_TYPE} -a ${var.NODES_ZONES} -e ${var.COMPANY_NAME} -f ${var.CONTACT_PERSON_NAME} -g ${var.EMAIL_ADDRESS} -i ${var.ILM} -k ${var.ASYNC_DR} -j ${var.LB_VIP}"
     interpreter = ["/bin/bash", "-c"]
   }
 }
@@ -124,40 +124,17 @@ SCRIPT
     command     = "${path.module}/setup_ems.sh -c ${var.TEMPLATE_TYPE} -l ${var.LB_TYPE} -t ${var.DISK_TYPE} -d ${var.DISK_CONFIG} -v ${var.VM_CONFIG} -p ${self.network_interface.0.network_ip} -r ${var.CLUSTER_NAME} -s ${var.DEPLOYMENT_TYPE} -a ${var.NODES_ZONES} -e ${var.COMPANY_NAME} -f ${var.CONTACT_PERSON_NAME} -g ${var.EMAIL_ADDRESS} -i ${var.ILM} -k ${var.ASYNC_DR} -j ${var.LB_VIP}"
     interpreter = ["/bin/bash", "-c"]
   }
+
+  provisioner "local-exec" {
+    command     = "${path.module}/destroy_storage_nodes.sh -a ${local.CREDENTIALS} -p ${var.PROJECT} -r ${var.CLUSTER_NAME} -z ${var.NODES_ZONES}"
+    interpreter = ["/bin/bash", "-c"]
+    when        = "destroy"
+  }
+
 }
 
 locals {
-  public_ip   = "${element(concat(google_compute_instance.Elastifile-EMS-Public.*.network_interface.0.access_config.0.assigned_nat_ip, list("")), 0)}"
+  public_ip   = "${element(concat(google_compute_instance.Elastifile-EMS-Public.*.network_interface.0.access_config.0.nat_ip, list("")), 0)}"
   private_ip  = "${element(concat(google_compute_instance.Elastifile-EMS-Private.*.network_interface.0.network_ip , list("")), 0)}"
   EMS_ADDRESS = "${var.USE_PUBLIC_IP ? local.public_ip : local.private_ip}"
-}
-
-resource "null_resource" "cluster" {
-  provisioner "local-exec" {
-    command     = "${path.module}/create_vheads.sh -c ${var.TEMPLATE_TYPE} -l ${var.LB_TYPE} -t ${var.DISK_TYPE} -n ${var.NUM_OF_VMS} -d ${var.DISK_CONFIG} -v ${var.VM_CONFIG} -p ${local.EMS_ADDRESS} -r ${var.CLUSTER_NAME} -s ${var.DEPLOYMENT_TYPE} -a ${var.NODES_ZONES} -e ${var.COMPANY_NAME} -f ${var.CONTACT_PERSON_NAME} -g ${var.EMAIL_ADDRESS} -i ${var.ILM} -k ${var.ASYNC_DR} -j ${var.LB_VIP}"
-    interpreter = ["/bin/bash", "-c"]
-  }
-
-  depends_on = ["google_compute_instance.Elastifile-EMS-Public", "google_compute_instance.Elastifile-EMS-Private"]
-
-  provisioner "local-exec" {
-    when        = "destroy"
-    command     = "${path.module}/destroy_vheads.sh -c ${var.CLUSTER_NAME} -a ${var.NODES_ZONES}"
-    interpreter = ["/bin/bash", "-c"]
-  }
-}
-
-resource "null_resource" "update_cluster" {
-  count = "${var.SETUP_COMPLETE == "true" ? 1 : 0}"
-
-  triggers {
-    num_of_vms = "${var.NUM_OF_VMS}"
-  }
-
-  provisioner "local-exec" {
-    command     = "${path.module}/update_vheads.sh -n ${var.NUM_OF_VMS} -a ${local.EMS_ADDRESS} -r ${var.CLUSTER_NAME} -l ${var.LB_TYPE} -p ${var.PROJECT}"
-    interpreter = ["/bin/bash", "-c"]
-  }
-
-  depends_on = ["null_resource.cluster"]
 }

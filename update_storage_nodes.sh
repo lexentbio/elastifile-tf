@@ -7,7 +7,6 @@ KEY=$1
  awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'${KEY}'\042/){print $(i+1)}}}' | tr -d '"'| tr '\n' ','
 }
 
-
 usage() {
   cat << E_O_F
 Usage:
@@ -15,7 +14,7 @@ Parameters:
   -n number of enode instances (cluster size): eg 3
   -a IP address
 Examples:
-  ./remove_vheads.sh -n 2 -a 1
+  ./update_vheads.sh -n 2 -a 10.100.10.1
 E_O_F
   exit 1
 }
@@ -23,12 +22,9 @@ E_O_F
 #variables
 SESSION_FILE=session.txt
 PASSWORD=`cat password.txt | cut -d " " -f 1`
-EMS_ADDRESS="127.0.0.1"
-SETUP_COMPLETE="false"
-NUM_OF_VMS=3
-WEB=https
-LOG="remove_vheads.log"
-taskid=0
+LOG="update_vheads.log"
+
+[[ -z "$PASSWORD" ]] && PASSWORD=changeme
 
 while getopts "h?:n:a:" opt; do
     case "$opt" in
@@ -43,25 +39,25 @@ while getopts "h?:n:a:" opt; do
     esac
 done
 
+#capture computed variables
 echo "EMS_ADDRESS: ${EMS_ADDRESS}" | tee ${LOG}
 echo "NUM_OF_VMS: ${NUM_OF_VMS}" | tee -a ${LOG}
 
 #establish https session
 function establish_session {
-	echo -e "Establishing https session..\n" | tee -a ${LOG}
-	curl -k -D ${SESSION_FILE} -H "Content-Type: application/json" -X POST -d '{"user": {"login":"admin","password":"'$1'"}}' https://${EMS_ADDRESS}/api/sessions >> ${LOG} 2>&1
-	}
-
-# Provision  and deploy
-function del_capacity {
-  if [[ ${NUM_OF_VMS} == 0 ]]; then
-    echo -e "0 VMs configured, skipping delete instances\n"
-  else
-    echo "Start instance deletion" | tee -a ${LOG}
-    delete_instances ${1}
-    job_status ecs_task
-  fi
+  echo -e "Establishing https session..\n" | tee -a ${LOG}
+  curl -k -D ${SESSION_FILE} -H "Content-Type: application/json" -X POST -d '{"user": {"login":"admin","password":"'$1'"}}' https://${EMS_ADDRESS}/api/sessions >> ${LOG} 2>&1
 }
+
+# Kickoff a create enode instances job
+function create_instances {
+  echo -e "Creating ${1} ECFS instances\n" | tee -a ${LOG}
+  result=$(curl -k -b ${SESSION_FILE} -H "Content-Type: application/json" -X POST -d '{"instances":'${1}',"async":true,"auto_start":true}' https://${EMS_ADDRESS}/api/hosts/create_instances)
+  echo $result | tee -a ${LOG}
+  taskid=$(echo $result | jsonValue id | sed s'/[,]$//')
+  echo "taskid: $taskid" | tee -a ${LOG}
+}
+
 
 # Kickoff a create enode instances job
 function delete_instances {
@@ -72,28 +68,45 @@ function delete_instances {
   echo "taskid: $taskid" | tee -a ${LOG}
 }
 
-
 # Function to check running job status
 function job_status {
   while true; do
     echo -e "checking job status" | tee -a ${LOG}
     STATUS=`curl -k -s -b ${SESSION_FILE} --request GET --url "https://${EMS_ADDRESS}/api/control_tasks/$taskid" | grep status | cut -d , -f 7 | cut -d \" -f 4`
-    echo -e  "$1 : ${STATUS} " | tee -a ${LOG}
+    echo -e  "$taskid : ${STATUS} " | tee -a ${LOG}
     if [[ ${STATUS} == "" ]]; then
-      echo -e "$1 Re_establish_session..\n" | tee -a ${LOG}
+      echo -e "$taskid Re_establish_session..\n" | tee -a ${LOG}
       establish_session ${PASSWORD}
       continue
     elif [[ ${STATUS} == "success" ]]; then
-      echo -e "$1 Complete! \n" | tee -a ${LOG}
+      echo -e "$taskid Complete! \n" | tee -a ${LOG}
       break
     elif  [[ ${STATUS} == "error" ]]; then
-      echo -e "$1 Failed. Exiting..\n" | tee -a ${LOG}
+      echo -e "$taskid Failed. Exiting..\n" | tee -a ${LOG}
       exit 1
     fi
     sleep 10
   done
 }
 
-# MAIN
+function update_vheads {
+  PRE_IPS=$(curl -k -b ${SESSION_FILE} -H "Content-Type: application/json" https://${EMS_ADDRESS}/api/enodes/ 2> /dev/null | jsonValue external_ip | sed s'/[,]$//')
+  PRE_NUM_OF_VMS=$(echo $PRE_IPS | awk -F"," '{print NF}')
+  echo "PRE_NUM_OF_VMS: ${PRE_NUM_OF_VMS}" | tee -a ${LOG}
+  if [[ ${NUM_OF_VMS} > ${PRE_NUM_OF_VMS} ]]; then
+    let NUM=${NUM_OF_VMS}-${PRE_NUM_OF_VMS}
+    create_instances $NUM
+  else
+    let NUM=${PRE_NUM_OF_VMS}-${NUM_OF_VMS}
+    delete_instances $NUM
+  fi
+
+  # job_status
+}
+
+#MAIN
 establish_session ${PASSWORD}
-del_capacity ${NUM_OF_VMS}
+update_vheads
+
+
+

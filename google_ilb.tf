@@ -1,21 +1,3 @@
-data "external" "storage_nodes" {
-  count = "${var.LB_TYPE == "google" ? 1 : 0}"
-
-  // Get the links of storage node
-  program = [
-    "${path.module}/get_storage_nodes.sh",
-    "-a",
-    "${local.CREDENTIALS}",
-    "-p",
-    "${var.PROJECT}",
-    "-r",
-    "${var.CLUSTER_NAME}",
-    "-z",
-    "${var.NODES_ZONES}",
-  ]
-
-}
-
 resource "google_compute_instance_group" "storage_nodes" {
   count = "${var.LB_TYPE == "google" ? length(local.AVAILABILITY_ZONES) : 0}"
 

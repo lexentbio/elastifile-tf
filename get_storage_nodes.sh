@@ -31,7 +31,7 @@ while getopts "a:p:r:z:h?" opt; do
     esac
 done
 
-LOGFILE=storage-nodes.log
+LOGFILE=get-storage-nodes.log
 
 echo '{' | tee ${LOGFILE}
 
@@ -39,7 +39,7 @@ for ZONE in "${ZONES[@]}"
 do
     gcloud compute instances list \
         --filter="zone:(${ZONE})" \
-        --filter="name:(${CLUSTER_NAME}-)" \
+        --filter="name:(${CLUSTER_NAME}-elfs-)" \
         --project="${PROJECT}" \
         --format 'value[terminator=","](selfLink)' \
         | sed "s/\(.*\),$/\"${ZONE}\": \"\\1\",/" \
