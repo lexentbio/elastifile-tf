@@ -6,7 +6,7 @@ resource "google_compute_instance_group" "storage_nodes" {
 
   instances = split(
     ",",
-    data.external.storage_nodes.result[element(local.AVAILABILITY_ZONES, count.index)],
+    lookup(data.external.storage_nodes.result, element(local.AVAILABILITY_ZONES, count.index), ""),
   )
 
   # TODO: tf-0.12 will come with dynamic blocks which will allow these instance groups to be set on backend service directly.
