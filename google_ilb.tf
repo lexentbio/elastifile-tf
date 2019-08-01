@@ -78,6 +78,56 @@ resource "google_compute_firewall" "elastifile_allow_internal_lb" {
   target_tags   = ["elastifile-storage-node"]
 }
 
+resource "google_compute_firewall" "elastifile_storage_management" {
+  count = var.LB_TYPE == "google" ? 1 : 0
+
+  name    = "${var.CLUSTER_NAME}-storage-management"
+  network = var.NETWORK
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports = ["22", "53", "80", "8080", "443", "10014-10017"]
+  }
+
+  allow {
+    protocol = "udp"
+    ports = ["53", "123", "6667"]
+  }
+
+  source_ranges = [data.google_compute_subnetwork.elastifile.ip_cidr_range]
+  source_tags   = ["elastifile-storage-node", "elastifile-replication-node", "elastifile-clients"]
+  target_tags = ["elastifile-management-node"]
+}
+
+resource "google_compute_firewall" "elastifile_storage_service" {
+  count = var.LB_TYPE == "google" ? 1 : 0
+
+  name    = "${var.CLUSTER_NAME}-storage-service"
+  network = var.NETWORK
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports = ["22", "111", "443", "2049", "644", "4040", "4045", "12121", "10015-10017", "8000-9224", "32768-60999"]
+  }
+
+  allow {
+    protocol = "udp"
+    ports = ["111", "2049", "644", "4040", "4045", "6667", "8000-9224", "32768-60999"]
+  }
+
+  source_ranges = [data.google_compute_subnetwork.elastifile.ip_cidr_range]
+  source_tags = ["elastifile-management-node", "elastifile-clients"]
+  target_tags   = ["elastifile-storage-node", "elastifile-replication-node"]
+}
+
 resource "google_compute_firewall" "elastifile_allow_health_check" {
   count = var.LB_TYPE == "google" ? 1 : 0
 
