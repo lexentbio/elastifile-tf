@@ -82,6 +82,7 @@ resource "google_compute_firewall" "elastifile_storage_management" {
   count = var.LB_TYPE == "google" ? 1 : 0
 
   name    = "${var.CLUSTER_NAME}-storage-management"
+  description             = "Elastifile Storage Management firewall rules"
   network = var.NETWORK
 
   allow {
@@ -107,6 +108,7 @@ resource "google_compute_firewall" "elastifile_storage_service" {
   count = var.LB_TYPE == "google" ? 1 : 0
 
   name    = "${var.CLUSTER_NAME}-storage-service"
+  description             = "Elastifile Storage Service firewall rules"
   network = var.NETWORK
 
   allow {
