@@ -14,7 +14,7 @@ resource "google_compute_instance_group" "storage_nodes" {
   # TODO: tf-0.12 will come with dynamic blocks which will allow these instance groups to be set on backend service directly.
   #       Until then we'll have to use the provisioners to add and remove them from the backend service.
   provisioner "local-exec" {
-    command = "gcloud compute backend-services add-backend ${google_compute_region_backend_service.elastifile_int_lb[0].name} --instance-group ${self.name} --instance-group-zone ${self.zone} --project ${var.PROJECT} --region ${var.REGION}"
+    command = "gcloud compute backend-services add-backend ${var.CLUSTER_NAME}-int-lb --instance-group ${self.name} --instance-group-zone ${self.zone} --project ${var.PROJECT} --region ${var.REGION}"
 
     environment = {
       GOOGLE_APPLICATION_CREDENTIALS = local.CREDENTIALS
@@ -23,7 +23,7 @@ resource "google_compute_instance_group" "storage_nodes" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "gcloud compute backend-services remove-backend ${google_compute_region_backend_service.elastifile_int_lb[0].name} --instance-group ${self.name} --instance-group-zone ${self.zone} --project ${var.PROJECT} --region ${var.REGION}"
+    command = "gcloud compute backend-services remove-backend ${var.CLUSTER_NAME}-int-lb --instance-group ${self.name} --instance-group-zone ${self.zone} --project ${var.PROJECT} --region ${var.REGION}"
 
     environment = {
       GOOGLE_APPLICATION_CREDENTIALS = local.CREDENTIALS
