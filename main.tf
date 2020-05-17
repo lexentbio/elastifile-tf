@@ -23,6 +23,7 @@ variable "DISK_CONFIG" {
 }
 
 variable "CLUSTER_NAME" {
+  default = "elastifile"
 }
 
 variable "COMPANY_NAME" {
@@ -55,14 +56,6 @@ variable "REGION" {
 
 variable "EMS_ZONE" {
   default = "us-central1-a"
-}
-
-variable "NETWORK" {
-  default = "default"
-}
-
-variable "SUBNETWORK" {
-  default = "default"
 }
 
 variable "PROJECT" {

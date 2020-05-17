@@ -13,8 +13,8 @@ resource "google_compute_instance" "Elastifile-EMS" {
 
   network_interface {
     #specify only one:
-    #network = "${var.NETWORK}"
-    subnetwork = var.SUBNETWORK
+    #network = google_compute_network.elastifile.name
+    subnetwork = google_compute_subnetwork.elastifile.name
 
     dynamic access_config {
       for_each = var.USE_PUBLIC_IP ? [1] : []

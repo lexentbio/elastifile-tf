@@ -20,7 +20,6 @@ Follow the Elastifile Cloud Deployment GCP Installation Guide to make sure ECFS 
 - CLUSTER_NAME = Name for ECFS service, no longer than
 - EMS_ZONE = EMS Zone
 - PROJECT = Project name
-- SUBNETWORK = Subnetwork to use. default or full path to use specific/custom project or shared vpc subnetwork eg projects/support-team-172804/regions/us-west1/subnetworks/andrew-shared-vpc-network-subnet
 - IMAGE = EMS image name
 - CREDENTIALS = path to service account credentials .json file if not using
 - SERVICE_EMAIL = service account email address

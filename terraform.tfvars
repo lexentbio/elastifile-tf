@@ -28,10 +28,6 @@ REGION = "us-central1"
 EMS_ZONE = "us-central1-d"
 # GCP project
 PROJECT = "booming-mission-107807"
-# GCP project subnetwork
-SUBNETWORK = "elastifile-subnet"
-# GCP project network
-NETWORK = "elastifile-network"
 # GCP service account credential filename
 CREDENTIALS   = "booming-mission-107807-ba9123136b7f.json"
 SERVICE_EMAIL = "cloud-performance@booming-mission-107807.iam.gserviceaccount.com"

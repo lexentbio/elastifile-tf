@@ -57,8 +57,8 @@ resource "google_compute_forwarding_rule" "elastifile_int_lb" {
   count = var.LB_TYPE == "google" ? 1 : 0
 
   name                  = "${var.CLUSTER_NAME}-int-lb"
-  network               = var.NETWORK
-  subnetwork            = var.SUBNETWORK
+  network = google_compute_network.elastifile.name
+  subnetwork = google_compute_subnetwork.elastifile.name
   backend_service       = google_compute_region_backend_service.elastifile_int_lb[0].self_link
   load_balancing_scheme = "INTERNAL"
   ports                 = [111, 2049, 644, 4040, 4045]
@@ -68,13 +68,13 @@ resource "google_compute_firewall" "elastifile_allow_internal_lb" {
   count = var.LB_TYPE == "google" ? 1 : 0
 
   name    = "${var.CLUSTER_NAME}-allow-internal-lb"
-  network = var.NETWORK
+  network = google_compute_network.elastifile.name
 
   allow {
     protocol = "tcp"
   }
 
-  source_ranges = [data.google_compute_subnetwork.elastifile.ip_cidr_range]
+  source_ranges = [google_compute_subnetwork.elastifile.ip_cidr_range]
   target_tags   = ["elastifile-storage-node"]
 }
 
@@ -83,7 +83,7 @@ resource "google_compute_firewall" "elastifile_storage_management" {
 
   name        = "${var.CLUSTER_NAME}-storage-management"
   description = "Elastifile Storage Management firewall rules"
-  network     = var.NETWORK
+  network = google_compute_network.elastifile.name
 
   allow {
     protocol = "icmp"
@@ -99,7 +99,7 @@ resource "google_compute_firewall" "elastifile_storage_management" {
     ports    = ["53", "123", "6667"]
   }
 
-  source_ranges = [data.google_compute_subnetwork.elastifile.ip_cidr_range]
+  source_ranges = [google_compute_subnetwork.elastifile.ip_cidr_range]
   source_tags   = ["elastifile-storage-node", "elastifile-replication-node", "elastifile-clients"]
   target_tags   = ["elastifile-management-node"]
 }
@@ -109,7 +109,7 @@ resource "google_compute_firewall" "elastifile_storage_service" {
 
   name        = "${var.CLUSTER_NAME}-storage-service"
   description = "Elastifile Storage Service firewall rules"
-  network     = var.NETWORK
+  network = google_compute_network.elastifile.name
 
   allow {
     protocol = "icmp"
@@ -125,7 +125,7 @@ resource "google_compute_firewall" "elastifile_storage_service" {
     ports    = ["111", "2049", "644", "4040", "4045", "6667", "8000-9224", "32768-60999"]
   }
 
-  source_ranges = [data.google_compute_subnetwork.elastifile.ip_cidr_range]
+  source_ranges = [google_compute_subnetwork.elastifile.ip_cidr_range]
   source_tags   = ["elastifile-management-node", "elastifile-clients"]
   target_tags   = ["elastifile-storage-node", "elastifile-replication-node"]
 }
@@ -134,7 +134,7 @@ resource "google_compute_firewall" "elastifile_allow_health_check" {
   count = var.LB_TYPE == "google" ? 1 : 0
 
   name    = "${var.CLUSTER_NAME}-allow-health-check"
-  network = var.NETWORK
+  network = google_compute_network.elastifile.name
 
   allow {
     protocol = "tcp"
@@ -143,8 +143,3 @@ resource "google_compute_firewall" "elastifile_allow_health_check" {
   source_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
   target_tags   = ["elastifile-storage-node"]
 }
-
-data "google_compute_subnetwork" "elastifile" {
-  name = var.SUBNETWORK
-}
-
