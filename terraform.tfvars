@@ -33,7 +33,7 @@ SUBNETWORK = "elastifile-subnet"
 # GCP project network
 NETWORK = "elastifile-network"
 # GCP service account credential filename
-CREDENTIALS = "booming-mission-107807-ba9123136b7f.json"
+CREDENTIALS   = "booming-mission-107807-ba9123136b7f.json"
 SERVICE_EMAIL = "cloud-performance@booming-mission-107807.iam.gserviceaccount.com"
 # true false
 USE_PUBLIC_IP = true

@@ -101,10 +101,6 @@ variable "LB_VIP" {
   default = "auto"
 }
 
-variable "DATA_CONTAINER" {
-  default = "DC01"
-}
-
 variable "NODES_ZONES" {
   default = "us-central1-a"
 }
@@ -122,28 +118,6 @@ variable "OPERATION_TYPE" {
 }
 
 provider "google" {
-}
-
-provider "restapi" {
-  uri                  = "https://${local.EMS_ADDRESS}/api/"
-  insecure             = true
-  use_cookies          = true
-  write_returns_object = true
-  xssi_prefix          = ")]}',"
-  headers = {
-    Cookie = data.external.session.result["value"]
-  }
-
-}
-
-data "external" "session" {
-  program = [
-    "${path.module}/create_session.sh",
-    "-a",
-    "https://${local.EMS_ADDRESS}/api/",
-    "-p",
-    "changeme",
-  ]
 }
 
 variable "https_firewall_tag" {
